@@ -38,9 +38,47 @@ export default async function handler(
       },
     },
   });
-  if (issueChildren.nodes.length) {
-    issueChildren.nodes.forEach((element) => {
-      console.log(`FOLLOW UP REQUIRED for ${element.identifier}`);
+  const slackWebhook = process.env.SLACK_WEBHOOK;
+  if (slackWebhook && issueChildren.nodes.length) {
+    const elements = [];
+    for (let index = 0; index < issueChildren.nodes.length; index++) {
+      const element = issueChildren.nodes[index];
+      elements.push({
+        type: "button",
+        text: {
+          type: "plain_text",
+          text: element.title,
+          emoji: true,
+        },
+        value: element.identifier,
+        url: `https://linear.app/loops/issue/${element.identifier}`,
+      });
+    }
+
+    const payload = {
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*<https://linear.app/loops/issue/${issue.identifier}|${issue.title}> - Closed*\nThese children need follow up:\n`,
+          },
+        },
+        {
+          type: "divider",
+        },
+        {
+          type: "actions",
+          elements,
+        },
+      ],
+    };
+    const response = await fetch(slackWebhook, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
   res.status(200).end();
