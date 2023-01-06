@@ -17,7 +17,8 @@ export default async function handler(
 ) {
   const isUpdate = req.body.action === "update";
   const isComplete = req.body.data.state.type === "completed";
-  const wasPreviouslyNotComplete = req.body.updatedFrom.completedAt === null;
+  const wasPreviouslyNotComplete =
+    req.body.updatedFrom && req.body.updatedFrom.completedAt === null;
 
   if (!(isUpdate && isComplete && wasPreviouslyNotComplete)) {
     res.status(200).end();
